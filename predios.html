@@ -680,7 +680,11 @@
     );
   }
 
-  fetch(CSV_URL, { redirect: "follow" })
+  // Cache-buster query param + cache:"no-store" so the browser never serves a
+  // stale cached copy of the CSV export — every page load asks Google fresh.
+  var FETCH_URL = CSV_URL + "&_=" + Date.now();
+
+  fetch(FETCH_URL, { redirect: "follow", cache: "no-store" })
     .then(function (resp) {
       if (!resp.ok) throw new Error("HTTP " + resp.status);
       return resp.text();
