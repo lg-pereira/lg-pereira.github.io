@@ -26,12 +26,6 @@ Aqui apresento meus projetos nas liguagens que estou aprendendo, inicialmente de
 
 `Um jogo de resgate de Helicóptero, onde você precisa salvar quantos amigos conseguir`
 
-**Projeto 5**
-
-[Planilha dos Prédios](predios.html)
-
-`Painel que consome os dados de uma planilha do Google Sheets e permite filtrar os territórios por responsável (Coluna H)`
-
 
 ### Comentários e Sugestões
 
