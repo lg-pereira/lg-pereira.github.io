@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planilha dos Prédios — Filtro por Responsável</title>
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --card-bg: #ffffff;
+    --border: #dde1e6;
+    --text: #1f2430;
+    --muted: #656d78;
+    --accent: #2563eb;
+    --accent-light: #eaf0fe;
+    --warn-bg: #fff7e6;
+    --warn-border: #f0c36d;
+    --header-bg: #1f2937;
+    --header-text: #f5f6f8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  header {
+    background: var(--header-bg);
+    color: var(--header-text);
+    padding: 20px 24px;
+  }
+  header h1 {
+    margin: 0 0 4px;
+    font-size: 1.35rem;
+  }
+  header p {
+    margin: 0;
+    color: #c7cdd6;
+    font-size: 0.88rem;
+  }
+  header a {
+    color: #9fc2ff;
+  }
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+  #status-banner {
+    display: none;
+    border: 1px solid var(--warn-border);
+    background: var(--warn-bg);
+    color: #6b4c00;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+    line-height: 1.4;
+  }
+  .toolbar {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+    margin-bottom: 16px;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1 1 220px;
+  }
+  .field label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  select, input[type="search"] {
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    font-size: 0.9rem;
+    background: #fff;
+    color: var(--text);
+  }
+  select:focus, input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  button#clear-btn {
+    padding: 9px 16px;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 0.85rem;
+    height: 38px;
+  }
+  button#clear-btn:hover { background: #f0f2f5; }
+  #summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+    color: var(--muted);
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  #summary strong { color: var(--text); }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-light);
+    color: var(--accent);
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  thead th {
+    text-align: left;
+    background: #eef1f5;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.86rem;
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: #fafbfc; }
+  .responsaveis-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .resp-tag {
+    background: var(--accent-light);
+    color: var(--accent);
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    white-space: nowrap;
+  }
+  .resp-tag.match {
+    background: var(--accent);
+    color: #fff;
+  }
+  .col-obs { min-width: 220px; max-width: 320px; color: var(--muted); }
+  .col-mapa a { color: var(--accent); text-decoration: none; font-size: 0.82rem; }
+  .col-mapa a:hover { text-decoration: underline; }
+  #table-wrap { overflow-x: auto; }
+  #empty-state {
+    display: none;
+    text-align: center;
+    padding: 40px 16px;
+    color: var(--muted);
+    background: var(--card-bg);
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+  }
+  footer {
+    max-width: 1200px;
+    margin: 24px auto 0;
+    padding: 0 16px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  footer a { color: var(--accent); }
+  details {
+    margin-top: 10px;
+  }
+  details summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  @media (max-width: 640px) {
+    .toolbar { flex-direction: column; align-items: stretch; }
+    thead { display: none; }
+    table, tbody, tr, td { display: block; width: 100%; }
+    tbody tr {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      padding: 6px 10px;
+    }
+    tbody td {
+      border-bottom: none;
+      padding: 6px 0;
+      display: flex;
+      gap: 6px;
+    }
+    tbody td::before {
+      content: attr(data-label);
+      font-weight: 600;
+      color: var(--muted);
+      min-width: 110px;
+      flex-shrink: 0;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      padding-top: 2px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📋 Planilha dos Prédios — Territórios</h1>
+  <p>
+    Dados vinculados à planilha
+    <a href="https://docs.google.com/spreadsheets/d/1y3C72yEwH01-Jz0R1K7pmdwLbiBC1KINnyUQYxk5-7Q/edit" target="_blank" rel="noopener">“Planilha dos prédios”</a>
+    no Google Sheets. Filtre pela Coluna H (Publicador aprovado).
+  </p>
+</header>
+
+<main>
+  <div id="status-banner"></div>
+
+  <div class="toolbar">
+    <div class="field">
+      <label for="responsavel-select">Responsável (Coluna H)</label>
+      <select id="responsavel-select">
+        <option value="">— Todos os responsáveis —</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="search-input">Buscar (território, endereço, nome, tipo, observações...)</label>
+      <input type="search" id="search-input" placeholder="Ex: São Cristóvão, Kitnet, N22...">
+    </div>
+    <button id="clear-btn" type="button">Limpar filtros</button>
+  </div>
+
+  <div id="summary">
+    <span>Exibindo <strong id="count-visible">0</strong> de <strong id="count-total">0</strong> registros</span>
+    <span id="active-filter-chip"></span>
+  </div>
+
+  <div id="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Território</th>
+          <th>Endereço</th>
+          <th>N°</th>
+          <th>Nome</th>
+          <th>Tipo</th>
+          <th>Qtd. Residências</th>
+          <th>Observações</th>
+          <th>Publicador aprovado</th>
+          <th>Mapa</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+
+  <div id="empty-state">Nenhum registro encontrado para esse filtro.</div>
+
+</main>
+
+<footer>
+  <p>
+    <strong>Sobre a sincronização:</strong> esta página tenta buscar os dados diretamente da planilha do Google Sheets em tempo real
+    (via exportação CSV pública). Se a planilha não estiver publicada como "qualquer pessoa com o link pode visualizar",
+    o navegador do visitante não consegue baixá-la (o Google bloqueia/exige login), e a página exibe automaticamente a
+    <strong>última cópia sincronizada</strong> incluída neste arquivo.
+  </p>
+  <details>
+    <summary>Observações da verificação dos dados (clique para ver)</summary>
+    <ul>
+      <li>A planilha tem 1 aba ("Página1"), 9 colunas (A–I) e 87 linhas de dados na data da verificação.</li>
+      <li>A Coluna H ("Publicador aprovado") normalmente contém vários nomes juntos na mesma célula (ex: "Luciana, Stefany, Rosa e Leda"). O filtro abaixo separa esses nomes individualmente para permitir a busca por pessoa.</li>
+      <li>Há inconsistência de maiúsculas/minúsculas na planilha original (ex.: "Cristiane Kraus" em algumas linhas e "CRistiane Kraus" / "marlene Santos" em outras). O filtro trata isso como a mesma pessoa, mas o texto exibido na tabela mantém a grafia original de cada linha.</li>
+      <li><strong>Possível erro de digitação encontrado:</strong> 4 linhas têm o Território começando com "M" (M46, M46, M46, M49) em vez de "N" — muito provavelmente um erro de digitação, já que "M" e "N" são teclas vizinhas e essas linhas estão intercaladas entre territórios N45–N49. Não corrigi automaticamente; os valores originais da planilha foram mantidos.</li>
+      <li>A linha do Território N3 tem "Rosa spliter" em vez de "Rosa" (erro de digitação confirmado) — o filtro trata as duas grafias como a mesma pessoa. O texto exibido na tabela mantém a grafia original de cada linha.</li>
+      <li>Alguns campos estão vazios na planilha original (ex.: Tipo/Qtd. Residências/Observações em algumas linhas de N26, N38, N48), o que é esperado — não preenchi nada.</li>
+    </ul>
+  </details>
+  <p>Última sincronização bem-sucedida exibida: <span id="last-sync">—</span></p>
+</footer>
+
+<script id="fallback-data" type="application/json">
+{"records": [{"territorio": "N-1", "endereco": "Rua: Pedro Camilo Vicente", "numero": "N° 123", "nome": "Condomínio Residencial Brisa", "tipo": "Prédio", "qtdResidencias": "04 Apto", "observacoes": "Sem portaria. Portão gerelmente fechado. Correio individual possui interfone", "publicadorAprovado": "Luciana, Stefany, Rosa e Leda", "responsaveis": ["luciana", "stefany", "rosa", "leda"], "mapa": "https://maps.app.goo.gl/YdRZRHgTWh4W6cDY6"}, {"territorio": "N-2", "endereco": "Rua: Henrique Borba dos Santos", "numero": "N° 26", "nome": "Ilha da Madeira Residencial", "tipo": "Prédio", "qtdResidencias": "Não foi possível identificar a qtd de apto", "observacoes": "Acesso por portaria . Correio coletivo. Possui interfone", "publicadorAprovado": "Luciana, Stefany, Rosa e Leda", "responsaveis": ["luciana", "stefany", "rosa", "leda"], "mapa": "https://maps.app.goo.gl/9hRTG4DNbv87reVR9"}, {"territorio": "N3", "endereco": "Rua: Pedro Camilo Vicente", "numero": "N° 371", "nome": "Sem Nome", "tipo": "Residencial", "qtdResidencias": "06 Kitnet", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone", "publicadorAprovado": "Rosa spliter, Stefany e Luciana, e Leda", "responsaveis": ["rosa", "stefany", "luciana", "leda"], "mapa": ""}, {"territorio": "N4", "endereco": "Rua: Henrique Borba dos Santos", "numero": "N° 110", "nome": "A confirmar", "tipo": "Condomínio", "qtdResidencias": "16 Apto por bloco/5 Blocos", "observacoes": "Acesso por portaria. Correio coletivo. Possui interfone. Possui áreas internas para carrinho, não foi possivel falar com sindico", "publicadorAprovado": "Luciana, Stefany, Rosa e Leda", "responsaveis": ["luciana", "stefany", "rosa", "leda"], "mapa": ""}, {"territorio": "N5", "endereco": "Rua: Jovito Anacleto", "numero": "N° 1192", "nome": "Sem Nome", "tipo": "Residencial", "qtdResidencias": "09 Kitnet", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone", "publicadorAprovado": "Luciana, Stefany, Rosa e Leda", "responsaveis": ["luciana", "stefany", "rosa", "leda"], "mapa": ""}, {"territorio": "N6", "endereco": "Rua: Fernando Viera", "numero": "N° 10", "nome": "Residencial Di Cavalcanti", "tipo": "Condomínio", "qtdResidencias": "36 Apto/2 blocos", "observacoes": "Acesso por portaria . Correio coletivo. Possui interfone. Possui áreas internas para carrinho, nao foi possivel falar com sindico", "publicadorAprovado": "Luciana, Stefany, Rosa e Leda", "responsaveis": ["luciana", "stefany", "rosa", "leda"], "mapa": ""}, {"territorio": "N7", "endereco": "Rua: São Cristóvão", "numero": "N° 246", "nome": "Sem Nome", "tipo": "Prédio", "qtdResidencias": "04 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "Luciana, Stefany, Rosa e Leda", "responsaveis": ["luciana", "stefany", "rosa", "leda"], "mapa": ""}, {"territorio": "N8", "endereco": "Rua: Odílio Garcia", "numero": "N° 69", "nome": "Sem Nome", "tipo": "Prédio", "qtdResidencias": "04 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "Luciana, Stefany, Rosa e Leda", "responsaveis": ["luciana", "stefany", "rosa", "leda"], "mapa": ""}, {"territorio": "N9", "endereco": "Rua: Henrique de Borba Dos Santos", "numero": "N° 823", "nome": "Sem Nome", "tipo": "Prédio", "qtdResidencias": "06 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio individual. Possui interfone", "publicadorAprovado": "Luciana, Stefany, Rosa e Leda", "responsaveis": ["luciana", "stefany", "rosa", "leda"], "mapa": ""}, {"territorio": "N9", "endereco": "Rua: Antônio Zaguini", "numero": "N° 20", "nome": "Sem Nome", "tipo": "Residencial", "qtdResidencias": "03 Kitnet", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone", "publicadorAprovado": "Luciana, Stefany, Rosa e Leda", "responsaveis": ["luciana", "stefany", "rosa", "leda"], "mapa": ""}, {"territorio": "N-10", "endereco": "Rua: São Cristóvão", "numero": "N° 988", "nome": "Sem Nome", "tipo": "Residencial", "qtdResidencias": "12 Kitnet", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio individual. Sem interfone", "publicadorAprovado": "Fabiana Salazario, Jane e Melania", "responsaveis": ["fabiana salazario", "jane", "melania"], "mapa": ""}, {"territorio": "N-11", "endereco": "Rua: Odílio Garcia", "numero": "N° 955", "nome": "Cond. Residencial Maria Julia", "tipo": "Prédio", "qtdResidencias": "16 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio individual. Possui interfone. Mora Irmão Maicou", "publicadorAprovado": "Fabiana Salazario, Jane e Melania", "responsaveis": ["fabiana salazario", "jane", "melania"], "mapa": ""}, {"territorio": "N12", "endereco": "Rua: Adolfo José de Assis", "numero": "N° 856", "nome": "Condominio Residencial Wilson Braz", "tipo": "Prédio", "qtdResidencias": "06 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio individual. Possui interfone", "publicadorAprovado": "Fabiana Salazario, Jane e Melania", "responsaveis": ["fabiana salazario", "jane", "melania"], "mapa": ""}, {"territorio": "N13", "endereco": "Rua: São Cristóvão", "numero": "N° 1179", "nome": "Sem Nome", "tipo": "Residencial", "qtdResidencias": "03 Kitnet", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "Fabiana Salazario, Jane e Melania", "responsaveis": ["fabiana salazario", "jane", "melania"], "mapa": ""}, {"territorio": "N14", "endereco": "Rua: São Cristóvão", "numero": "N° 1109", "nome": "Residencial Margarida Bagatoli", "tipo": "Prédio", "qtdResidencias": "04 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "Fabiana Salazario, Jane e Melania", "responsaveis": ["fabiana salazario", "jane", "melania"], "mapa": ""}, {"territorio": "N15", "endereco": "Rua: Odílio Garcia", "numero": "N° 1235", "nome": "Sem Nome", "tipo": "Prédio", "qtdResidencias": "04 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "Fabiana Salazario, Jane e Melania", "responsaveis": ["fabiana salazario", "jane", "melania"], "mapa": ""}, {"territorio": "N16", "endereco": "Rua: Santo Agostinho", "numero": "N° 1081", "nome": "Sem Nome", "tipo": "Residencial", "qtdResidencias": "08 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio individual. Possui interfone", "publicadorAprovado": "Fabiana Salazario, Jane e Melania", "responsaveis": ["fabiana salazario", "jane", "melania"], "mapa": ""}, {"territorio": "N17", "endereco": "Rua: Max Tavares de Amaral", "numero": "N° 78", "nome": "Sem Nome", "tipo": "Prédio", "qtdResidencias": "18 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone", "publicadorAprovado": "Fabiana Salazario, Jane e Melania", "responsaveis": ["fabiana salazario", "jane", "melania"], "mapa": ""}, {"territorio": "N18", "endereco": "Rua: Mario Réis", "numero": "N° 330", "nome": "Sem Nome", "tipo": "Prédio", "qtdResidencias": "04 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone", "publicadorAprovado": "Fabiana Salazario, Jane e Melania", "responsaveis": ["fabiana salazario", "jane", "melania"], "mapa": ""}, {"territorio": "N19", "endereco": "Rua: Mario Réis", "numero": "N° 34", "nome": "Residencial Luma", "tipo": "Prédio", "qtdResidencias": "04 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio individual. Possui interfone", "publicadorAprovado": "Fabiana Salazario, Jane e Melania", "responsaveis": ["fabiana salazario", "jane", "melania"], "mapa": ""}, {"territorio": "N20", "endereco": "Rua: Santo Agostinho", "numero": "N° 370", "nome": "Residencial Vicenzo", "tipo": "Prédio", "qtdResidencias": "04 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "Cristiane Kraus, Amanda, e Eliana", "responsaveis": ["cristiane kraus", "amanda", "eliana"], "mapa": ""}, {"territorio": "N21", "endereco": "Rua: Santo Agostinho", "numero": "N° 350", "nome": "Ed. Residencial Antônio Delinda", "tipo": "Prédio", "qtdResidencias": "09 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "Cristiane Kraus, Amanda, e Eliana", "responsaveis": ["cristiane kraus", "amanda", "eliana"], "mapa": ""}, {"territorio": "N22", "endereco": "Rua: Laudelina Dionísio", "numero": "N° 357", "nome": "Residencial Vivendas do Valle", "tipo": "Vários Prédios", "qtdResidencias": "24 Apto/3 blocos", "observacoes": "Acesso por portaria. Correio coletivo. Possui interfone. Possui áreas internas para carrinho, não foi possivel falar com sindico.", "publicadorAprovado": "Cristiane Kraus, Amanda, e Eliana", "responsaveis": ["cristiane kraus", "amanda", "eliana"], "mapa": ""}, {"territorio": "N18", "endereco": "Rua: Laudelina Dionísio", "numero": "N° 357", "nome": "Residencial Moradas do Valle", "tipo": "Vários Prédios", "qtdResidencias": "32 Apto/3 blocos", "observacoes": "Acesso por portaria. Correio coletivo. Possui interfone. Possui áreas internas para carrinho, não foi possivel falar com sindico. Mora Irmão Elder", "publicadorAprovado": "Cristiane Kraus, Amanda, e Eliana", "responsaveis": ["cristiane kraus", "amanda", "eliana"], "mapa": ""}, {"territorio": "N19", "endereco": "Rua: Galdino de Borba", "numero": "N° 415", "nome": "Condomínio Varandas do Valle", "tipo": "Prédio", "qtdResidencias": "16 Apto/8 blocos", "observacoes": "Acesso por portaria. Correio coletivo. Possui interfone. Possui áreas internas para carrinho, não foi possivel falar com sindico.", "publicadorAprovado": "Cristiane Kraus, Amanda, e Eliana", "responsaveis": ["cristiane kraus", "amanda", "eliana"], "mapa": ""}, {"territorio": "N20", "endereco": "Rua: Galdino de Borba", "numero": "N° 65", "nome": "Sem Nome", "tipo": "Residencial", "qtdResidencias": "04 Kitnet", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "Cristiane Kraus, Amanda, e Eliana", "responsaveis": ["cristiane kraus", "amanda", "eliana"], "mapa": ""}, {"territorio": "N21", "endereco": "Rua: Lausimar Laus", "numero": "N° 110", "nome": "Sem Nome", "tipo": "Residencial", "qtdResidencias": "Verificar", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone", "publicadorAprovado": "Cristiane Kraus, Amanda, e Eliana", "responsaveis": ["cristiane kraus", "amanda", "eliana"], "mapa": ""}, {"territorio": "N22", "endereco": "Rua: Laudelina Dionísio", "numero": "N° 650", "nome": "Residencial Elias Mafra", "tipo": "Prédio", "qtdResidencias": "10 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "CRistiane Kraus, Amanda, e Eliana", "responsaveis": ["cristiane kraus", "amanda", "eliana"], "mapa": ""}, {"territorio": "N22", "endereco": "Rua: Alfredo Esser", "numero": "N° 163", "nome": "Sem Nome", "tipo": "Prédio", "qtdResidencias": "A Verificar", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone", "publicadorAprovado": "CRistiane Kraus, Amanda, e Eliana", "responsaveis": ["cristiane kraus", "amanda", "eliana"], "mapa": ""}, {"territorio": "N22", "endereco": "Rua: Lausimar Laus", "numero": "N° 163", "nome": "Sem Nome", "tipo": "Prédio", "qtdResidencias": "A Verificar", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone", "publicadorAprovado": "Marlene Santos, Vanessa Orlonsk, Simone", "responsaveis": ["marlene santos", "vanessa orlonsk", "simone"], "mapa": ""}, {"territorio": "N22", "endereco": "Rua: Max Tavares de Amaral", "numero": "N° 289", "nome": "Residencial Maré Mansa", "tipo": "Prédio", "qtdResidencias": "06 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio individual. Possui interfone", "publicadorAprovado": "Marlene Santos, Vanessa Orlonsk, Simone", "responsaveis": ["marlene santos", "vanessa orlonsk", "simone"], "mapa": ""}, {"territorio": "N23", "endereco": "Rua: Amapá", "numero": "N° 109", "nome": "Sem nome", "tipo": "Prédio", "qtdResidencias": "06 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio individual. Possui interfone", "publicadorAprovado": "Marlene Santos, Vanessa Orlonsk, Simone", "responsaveis": ["marlene santos", "vanessa orlonsk", "simone"], "mapa": ""}, {"territorio": "N23", "endereco": "Rua: Armando de Amorim", "numero": "N° 295", "nome": "Residencial Ines Siqueira", "tipo": "Prédio", "qtdResidencias": "04 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "Marlene Santos, Vanessa Orlonsk, Simone", "responsaveis": ["marlene santos", "vanessa orlonsk", "simone"], "mapa": ""}, {"territorio": "N24", "endereco": "Rua: Iolando Benvenutti Júnior", "numero": "N° 155", "nome": "Residencial Maria Luiza II", "tipo": "Prédio", "qtdResidencias": "04 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "Marlene Santos, Vanessa Orlonsk, Simone", "responsaveis": ["marlene santos", "vanessa orlonsk", "simone"], "mapa": ""}, {"territorio": "N24", "endereco": "Rua: Amapá", "numero": "N° 102", "nome": "Sem Nome", "tipo": "Residencial", "qtdResidencias": "12 Kitnet", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone, Possivel acesso individual", "publicadorAprovado": "Marlene Santos, Vanessa Orlonsk, Simone", "responsaveis": ["marlene santos", "vanessa orlonsk", "simone"], "mapa": ""}, {"territorio": "N24", "endereco": "Rua: Armando de Amorim", "numero": "N° 295", "nome": "Vila do sol", "tipo": "Condomínio", "qtdResidencias": "3 Blocos nao foi possivel saber qtd de apto", "observacoes": "Acesso por portaria. Correio coletivo. Possui interfone. Possui áreas internas para carrinho, não foi possivel falar com sindico", "publicadorAprovado": "Marlene Santos, Vanessa Orlonsk, Simone", "responsaveis": ["marlene santos", "vanessa orlonsk", "simone"], "mapa": ""}, {"territorio": "N24", "endereco": "Rua: Alfredo Esser", "numero": "N° 580", "nome": "Residencial Solar da Figueira", "tipo": "Condomínio", "qtdResidencias": "24 Apto/2 blocos", "observacoes": "Acesso por portaria. Correio coletivo. Possui interfone. Possui áreas internas para carrinho, não foi possivel falar com sindico.", "publicadorAprovado": "Marlene Santos, Vanessa Orlonsk, Simone", "responsaveis": ["marlene santos", "vanessa orlonsk", "simone"], "mapa": ""}, {"territorio": "N25", "endereco": "Rua: Amapá", "numero": "N° 191", "nome": "Sem Nome", "tipo": "Prédio", "qtdResidencias": "04 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio individual. Possui interfone", "publicadorAprovado": "Marlene Santos, Vanessa Orlonsk, Simone", "responsaveis": ["marlene santos", "vanessa orlonsk", "simone"], "mapa": ""}, {"territorio": "N26", "endereco": "Rua: Amapá", "numero": "N° 201", "nome": "Sem Nome", "tipo": "Prédio", "qtdResidencias": "04 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio individual. Possui interfone", "publicadorAprovado": "marlene Santos, Vanessa Orlonsk, Simone", "responsaveis": ["marlene santos", "vanessa orlonsk", "simone"], "mapa": ""}, {"territorio": "N26", "endereco": "Rua: Brasília esquina com Amazonas", "numero": "N° 83", "nome": "Ed. Residencial e Comercial Maria Clara", "tipo": "Prédio", "qtdResidencias": "04 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "marlene Santos, Vanessa Orlonsk, Simone", "responsaveis": ["marlene santos", "vanessa orlonsk", "simone"], "mapa": ""}, {"territorio": "N26", "endereco": "Rua:Gustavo Bernedet esquina c/ Aracajú", "numero": "N° 1325", "nome": "Sem Nome", "tipo": "Residencial", "qtdResidencias": "06 Kitnet", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone", "publicadorAprovado": "Tânia Eble, Katia P, Nina Rebello", "responsaveis": ["tania eble", "katia p", "nina rebello"], "mapa": ""}, {"territorio": "N26", "endereco": "Rua: Goiás", "numero": "N° 215", "nome": "Sem nome", "tipo": "Residencial", "qtdResidencias": "", "observacoes": "", "publicadorAprovado": "Tânia Eble, Katia P, Nina Rebello", "responsaveis": ["tania eble", "katia p", "nina rebello"], "mapa": ""}, {"territorio": "N30", "endereco": "Rua: Rondônia", "numero": "N° 164", "nome": "Sem Nome", "tipo": "Prédio", "qtdResidencias": "03 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Sem Caixa de Correio. Possui interfone", "publicadorAprovado": "Tânia Eble, Katia P, Nina Rebello", "responsaveis": ["tania eble", "katia p", "nina rebello"], "mapa": ""}, {"territorio": "N31", "endereco": "Rua: Pará", "numero": "N° 295", "nome": "Residencial Gonçalves", "tipo": "Residencial", "qtdResidencias": "04 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio individual. Possui interfone", "publicadorAprovado": "Tânia Eble, Katia P, Nina Rebello", "responsaveis": ["tania eble", "katia p", "nina rebello"], "mapa": ""}, {"territorio": "N31", "endereco": "Rua: Pará", "numero": "N° 216", "nome": "Sem Nome", "tipo": "Prédio", "qtdResidencias": "04 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone", "publicadorAprovado": "Tânia Eble, Katia P, Nina Rebello", "responsaveis": ["tania eble", "katia p", "nina rebello"], "mapa": ""}, {"territorio": "N34", "endereco": "Rua: Amapá", "numero": "N° 250", "nome": "Sem Nome", "tipo": "Residencial", "qtdResidencias": "04 Kitnet", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone", "publicadorAprovado": "Tânia Eble, Katia P, Nina Rebello", "responsaveis": ["tania eble", "katia p", "nina rebello"], "mapa": ""}, {"territorio": "N34", "endereco": "Rua: Maranhão", "numero": "N° 261", "nome": "Sem Nome", "tipo": "Residencial", "qtdResidencias": "09 Kitnet", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone", "publicadorAprovado": "Tânia Eble, Katia P, Nina Rebello", "responsaveis": ["tania eble", "katia p", "nina rebello"], "mapa": ""}, {"territorio": "N35", "endereco": "Rua: Antonio Muller Reis", "numero": "N° 32", "nome": "Residencial Mar Azul", "tipo": "Prédio", "qtdResidencias": "04 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio individual. Possui interfone. Mora Irmão Juarez", "publicadorAprovado": "Tânia Eble, Katia P, Nina Rebello", "responsaveis": ["tania eble", "katia p", "nina rebello"], "mapa": ""}, {"territorio": "N35", "endereco": "Rua: Armando de Amorim", "numero": "N° 50", "nome": "Bella Aqcua", "tipo": "Prédio", "qtdResidencias": "23 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "Tânia Eble, Katia P, Nina Rebello", "responsaveis": ["tania eble", "katia p", "nina rebello"], "mapa": ""}, {"territorio": "N35", "endereco": "Rua: Amapá", "numero": "N° 180", "nome": "Lady Elisa Residencial", "tipo": "Prédio", "qtdResidencias": "16 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "Tânia Eble, Katia P, Nina Rebello", "responsaveis": ["tania eble", "katia p", "nina rebello"], "mapa": ""}, {"territorio": "N36", "endereco": "Rua: João Olavo dos Santos", "numero": "N° 37", "nome": "Sem Nome", "tipo": "Prédio", "qtdResidencias": "08 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "Tânia Eble, Katia P, Nina Rebello", "responsaveis": ["tania eble", "katia p", "nina rebello"], "mapa": ""}, {"territorio": "N36", "endereco": "Rua: Alfredo Esser", "numero": "N° 306", "nome": "Sem nome", "tipo": "Residencial", "qtdResidencias": "04 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio individual. Possui interfone.", "publicadorAprovado": "Ires Baldança, Marilia, Melina, e Marli", "responsaveis": ["ires baldanca", "marilia", "melina", "marli"], "mapa": ""}, {"territorio": "N38", "endereco": "Rua: São Paulo", "numero": "N° 273", "nome": "Parque Das Palmeiras", "tipo": "Prédio", "qtdResidencias": "", "observacoes": "Não Foi Possivel verificar esse prédio, aparentemente nao ha moradores, predio em cima da academia", "publicadorAprovado": "Ires Baldança, Marilia, Melina, e Marli", "responsaveis": ["ires baldanca", "marilia", "melina", "marli"], "mapa": ""}, {"territorio": "N38", "endereco": "Rua: Independência", "numero": "N° 74", "nome": "Sem nome", "tipo": "Prédio", "qtdResidencias": "04 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "Ires Baldança, Marilia, Melina, e Marli", "responsaveis": ["ires baldanca", "marilia", "melina", "marli"], "mapa": ""}, {"territorio": "N40", "endereco": "Rua: Alagoas", "numero": "N° 102", "nome": "Residencial Santa Catarina", "tipo": "Residencial", "qtdResidencias": "04 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "Ires Baldança, Marilia, Melina, e Marli", "responsaveis": ["ires baldanca", "marilia", "melina", "marli"], "mapa": ""}, {"territorio": "N41", "endereco": "Rua: São Paulo", "numero": "N° 270", "nome": "Residencial Lago Maggiore", "tipo": "Prédio", "qtdResidencias": "Verificar", "observacoes": "Acesso por portaria. Correio coletivo. Possui interfone. Não foi possivel falar com sindico", "publicadorAprovado": "Ires Baldança, Marilia, Melina, e Marli", "responsaveis": ["ires baldanca", "marilia", "melina", "marli"], "mapa": ""}, {"territorio": "N42", "endereco": "Rua: Galdino de Borba", "numero": "N° 284", "nome": "Residencial Aguas Claras", "tipo": "Prédio", "qtdResidencias": "Verificar", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone.", "publicadorAprovado": "Ires Baldança, Marilia, Melina, e Marli", "responsaveis": ["ires baldanca", "marilia", "melina", "marli"], "mapa": ""}, {"territorio": "N42", "endereco": "Rua: Antonio de Souza", "numero": "N° 84", "nome": "Residencial Noah", "tipo": "Prédio", "qtdResidencias": "06 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone.", "publicadorAprovado": "Ires Baldança, Marilia, Melina, e Marli", "responsaveis": ["ires baldanca", "marilia", "melina", "marli"], "mapa": ""}, {"territorio": "N43", "endereco": "Rua: Independência esquina com Rua Santa catarina", "numero": "N° 101", "nome": "Sem nome", "tipo": "Prédio", "qtdResidencias": "04 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone.", "publicadorAprovado": "Ires Baldança, Marilia, Melina, e Marli", "responsaveis": ["ires baldanca", "marilia", "melina", "marli"], "mapa": ""}, {"territorio": "N44", "endereco": "Rua: Enedina D'Avila Ferreira", "numero": "N° 1506", "nome": "Sem nome", "tipo": "Residencial", "qtdResidencias": "07 Kitnet", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N44", "endereco": "Rua: Enedina D'Avila Ferreira", "numero": "N° 1529", "nome": "Sem nome", "tipo": "Residencial", "qtdResidencias": "04 Kitnet", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N44", "endereco": "Rua: Enedina D'Avila Ferreira", "numero": "N° 1565", "nome": "Residencial Davila Ferreira I", "tipo": "Prédio", "qtdResidencias": "05 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N44", "endereco": "Rua: Enedina D'Avila Ferreira", "numero": "N° 1577", "nome": "Residencial Davila Ferreira", "tipo": "Prédio", "qtdResidencias": "07 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N44", "endereco": "Rua: Enedina D'Avila Ferreira", "numero": "N° 1697", "nome": "Residencial J. Spagnollo", "tipo": "Prédio", "qtdResidencias": "09 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N44", "endereco": "Rua: Mario Bento dos Passos", "numero": "N° 1452", "nome": "Residencial Otto Adriano", "tipo": "Prédio", "qtdResidencias": "12 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio individual. Sem interfone", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N44", "endereco": "Rua: Mario Bento dos Passos", "numero": "N° 1416", "nome": "Sem nome", "tipo": "Prédio", "qtdResidencias": "06 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio individual. Possui interfone", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N45", "endereco": "Rua: Mario Bento dos Passos", "numero": "N° 1387", "nome": "Sem nome", "tipo": "Residencial", "qtdResidencias": "06 Kitnet", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio individual. Sem interfone", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N45", "endereco": "Rua: Vereador Nestos dos Santos", "numero": "N° 1606", "nome": "Sem Nome", "tipo": "Residencial", "qtdResidencias": "04 Kitnet", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N45", "endereco": "Rua: Vereador Nestos dos Santos", "numero": "N° 1582", "nome": "Sem Nome", "tipo": "Residencial", "qtdResidencias": "04 Kitnet", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N45", "endereco": "Rua: Vereador Nestos dos Santos", "numero": "N° 1546", "nome": "Sem Nome", "tipo": "Prédio", "qtdResidencias": "04 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N45", "endereco": "Rua: Selso Duarte Moreira", "numero": "N° 1538", "nome": "Sem Nome", "tipo": "Residencial", "qtdResidencias": "06 Kitnet", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "M46", "endereco": "Rua: Selso Duarte Moreira", "numero": "N° 1445", "nome": "Marques", "tipo": "Residencial", "qtdResidencias": "06 Kitnet", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone. Mora Irmão Denis. Pode ser feito testemunho internamente", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "M46", "endereco": "Rua: José Lopes", "numero": "N° 1353", "nome": "Residencial Moriá", "tipo": "Residencial", "qtdResidencias": "04 Kitnet", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio individual. Possui interfone", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N46", "endereco": "Rua: José Lopes", "numero": "N° 1437", "nome": "Residencial San Fratello", "tipo": "Prédio", "qtdResidencias": "04 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio individual. Possui interfone", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N46", "endereco": "Rua: José Lopes", "numero": "N° 1449", "nome": "Residencial Tivoli", "tipo": "Prédio", "qtdResidencias": "08 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio individual. Possui interfone", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N46", "endereco": "Rua: José Lopes", "numero": "N° 1485", "nome": "Residencial Quattro", "tipo": "Prédio", "qtdResidencias": "09 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N46", "endereco": "Rua: José Lopes", "numero": "N° 1497", "nome": "Residencial Trois", "tipo": "Prédio", "qtdResidencias": "09 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "M46", "endereco": "Rua: Mario Uriarte", "numero": "N° 401", "nome": "Sem Nome", "tipo": "Residencial", "qtdResidencias": "10 Kitnet", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N47", "endereco": "Rua: Aracajú", "numero": "N° 1316", "nome": "Residencial Ilha Grande", "tipo": "Prédio", "qtdResidencias": "08 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N47", "endereco": "Rua: Natal", "numero": "N° 87", "nome": "Sem Nome", "tipo": "Residencial", "qtdResidencias": "04 ou 06 Kitnet", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N48", "endereco": "Rua: Mario Celso Teixeira Verificar", "numero": "", "nome": "", "tipo": "", "qtdResidencias": "", "observacoes": "", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N48", "endereco": "Rua Mário Uriarte 1803 ou 975", "numero": "", "nome": "Residencial Alvorada", "tipo": "Prédio", "qtdResidencias": "", "observacoes": "", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N49", "endereco": "Rua: Nossa Sra. de Fátima", "numero": "N° 142", "nome": "Residencial Fontana del Moro", "tipo": "Prédio", "qtdResidencias": "40 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone. Possui Sindico", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N49", "endereco": "Rua: Gustavo Bernedet", "numero": "N° 65", "nome": "Residencial Alameda Poeta", "tipo": "Prédio", "qtdResidencias": "28 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone.", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N49", "endereco": "Rua: Romualdo Sedrez", "numero": "N° 111", "nome": "Sem Nome", "tipo": "Residencial", "qtdResidencias": "05 Apto ou mais", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Sem interfone", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "N49", "endereco": "Rua: Gustavo Bernedet", "numero": "N° 315", "nome": "Sem Nome", "tipo": "Prédio", "qtdResidencias": "04 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone.", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}, {"territorio": "M49", "endereco": "Rua: Romoaldo Sedrez", "numero": "N° 236", "nome": "Residencial Estilo de Flor", "tipo": "Prédio", "qtdResidencias": "06 Apto", "observacoes": "Sem Portaria. Acesso por portão geralmente fechado. Correio coletivo. Possui interfone.", "publicadorAprovado": "João Carlos, Denis Oronsk, Vinícius", "responsaveis": ["joao carlos", "denis oronsk", "vinicius"], "mapa": ""}], "names": [{"key": "amanda", "label": "Amanda"}, {"key": "cristiane kraus", "label": "Cristiane Kraus"}, {"key": "denis oronsk", "label": "Denis Oronsk"}, {"key": "eliana", "label": "Eliana"}, {"key": "fabiana salazario", "label": "Fabiana Salazario"}, {"key": "ires baldanca", "label": "Ires Baldança"}, {"key": "jane", "label": "Jane"}, {"key": "joao carlos", "label": "João Carlos"}, {"key": "katia p", "label": "Katia P"}, {"key": "leda", "label": "Leda"}, {"key": "luciana", "label": "Luciana"}, {"key": "marilia", "label": "Marilia"}, {"key": "marlene santos", "label": "Marlene Santos"}, {"key": "marli", "label": "Marli"}, {"key": "melania", "label": "Melania"}, {"key": "melina", "label": "Melina"}, {"key": "nina rebello", "label": "Nina Rebello"}, {"key": "rosa", "label": "Rosa"}, {"key": "simone", "label": "Simone"}, {"key": "stefany", "label": "Stefany"}, {"key": "tania eble", "label": "Tânia Eble"}, {"key": "vanessa orlonsk", "label": "Vanessa Orlonsk"}, {"key": "vinicius", "label": "Vinícius"}]}
+</script>
+
+<script>
+(function () {
+  var SHEET_ID = "1y3C72yEwH01-Jz0R1K7pmdwLbiBC1KINnyUQYxk5-7Q";
+  var CSV_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/export?format=csv&gid=0";
+
+  var tableBody = document.getElementById("table-body");
+  var selectEl = document.getElementById("responsavel-select");
+  var searchEl = document.getElementById("search-input");
+  var clearBtn = document.getElementById("clear-btn");
+  var countVisible = document.getElementById("count-visible");
+  var countTotal = document.getElementById("count-total");
+  var emptyState = document.getElementById("empty-state");
+  var statusBanner = document.getElementById("status-banner");
+  var lastSyncEl = document.getElementById("last-sync");
+  var activeChip = document.getElementById("active-filter-chip");
+
+  var allRecords = [];
+  var nameList = [];
+
+  // Nomes confirmados como a mesma pessoa apesar da grafia diferente na planilha
+  // (ex: "Rosa spliter" é um erro de digitação para "Rosa" na linha do território N3).
+  var NAME_ALIASES = {
+    "rosa spliter": "rosa"
+  };
+
+  function normalize(str) {
+    var key = (str || "")
+      .toString()
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .toLowerCase()
+      .trim();
+    return NAME_ALIASES[key] || key;
+  }
+
+  function splitResponsaveis(cell) {
+    return (cell || "")
+      .split(/,| e /)
+      .map(function (p) { return p.replace(/\s+/g, " ").trim().replace(/\.$/, ""); })
+      .filter(Boolean);
+  }
+
+  // Simple CSV parser that handles quoted fields with commas/newlines.
+  function parseCSV(text) {
+    var rows = [];
+    var row = [];
+    var field = "";
+    var inQuotes = false;
+    for (var i = 0; i < text.length; i++) {
+      var c = text[i];
+      if (inQuotes) {
+        if (c === '"') {
+          if (text[i + 1] === '"') { field += '"'; i++; }
+          else { inQuotes = false; }
+        } else {
+          field += c;
+        }
+      } else {
+        if (c === '"') { inQuotes = true; }
+        else if (c === ',') { row.push(field); field = ""; }
+        else if (c === '\r') { /* skip */ }
+        else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ""; }
+        else { field += c; }
+      }
+    }
+    if (field.length || row.length) { row.push(field); rows.push(row); }
+    return rows.filter(function (r) { return r.length > 1 || (r[0] && r[0].trim()); });
+  }
+
+  function recordsFromCSV(rows) {
+    var dataRows = rows.slice(1); // skip header
+    var records = [];
+    var casing = {};
+    dataRows.forEach(function (r) {
+      while (r.length < 9) r.push("");
+      var clean = function (s) { return (s || "").replace(/\s+/g, " ").trim(); };
+      var publicadorRaw = clean(r[7]);
+      var names = splitResponsaveis(publicadorRaw);
+      var keys = names.map(function (n) {
+        var key = normalize(n);
+        casing[key] = casing[key] || {};
+        casing[key][n] = (casing[key][n] || 0) + 1;
+        return key;
+      });
+      records.push({
+        territorio: clean(r[0]),
+        endereco: clean(r[1]),
+        numero: clean(r[2]),
+        nome: clean(r[3]),
+        tipo: clean(r[4]),
+        qtdResidencias: clean(r[5]),
+        observacoes: clean(r[6]),
+        publicadorAprovado: publicadorRaw,
+        responsaveis: keys,
+        mapa: (r[8] || "").trim()
+      });
+    });
+    var names = Object.keys(casing).map(function (key) {
+      var best = null, bestCount = -1;
+      Object.keys(casing[key]).forEach(function (label) {
+        if (casing[key][label] > bestCount) { best = label; bestCount = casing[key][label]; }
+      });
+      return { key: key, label: best };
+    }).sort(function (a, b) { return a.label.localeCompare(b.label, "pt-BR"); });
+    return { records: records, names: names };
+  }
+
+  function populateNameSelect(names) {
+    names.forEach(function (n) {
+      var opt = document.createElement("option");
+      opt.value = n.key;
+      opt.textContent = n.label;
+      selectEl.appendChild(opt);
+    });
+  }
+
+  function escapeHTML(str) {
+    var div = document.createElement("div");
+    div.textContent = str == null ? "" : str;
+    return div.innerHTML;
+  }
+
+  function render() {
+    var selectedKey = selectEl.value;
+    var query = normalize(searchEl.value);
+
+    var visible = allRecords.filter(function (rec) {
+      var matchesResp = !selectedKey || rec.responsaveis.indexOf(selectedKey) !== -1;
+      if (!matchesResp) return false;
+      if (!query) return true;
+      var haystack = normalize([
+        rec.territorio, rec.endereco, rec.numero, rec.nome, rec.tipo,
+        rec.qtdResidencias, rec.observacoes, rec.publicadorAprovado
+      ].join(" | "));
+      return haystack.indexOf(query) !== -1;
+    });
+
+    tableBody.innerHTML = visible.map(function (rec) {
+      var tagsHtml = rec.responsaveis.map(function (key, i) {
+        var label = (rec.publicadorAprovado ? null : null);
+        return key;
+      });
+      // Build display tags using original casing split from publicadorAprovado
+      var displayNames = splitResponsaveis(rec.publicadorAprovado);
+      var tags = displayNames.map(function (label) {
+        var key = normalize(label);
+        var cls = key === selectedKey ? "resp-tag match" : "resp-tag";
+        return '<span class="' + cls + '">' + escapeHTML(label) + '</span>';
+      }).join("");
+
+      var mapaCell = rec.mapa
+        ? '<a href="' + escapeHTML(rec.mapa) + '" target="_blank" rel="noopener">Abrir mapa ↗</a>'
+        : '<span style="color:#aaa">—</span>';
+
+      return "<tr>" +
+        '<td data-label="Território">' + escapeHTML(rec.territorio) + "</td>" +
+        '<td data-label="Endereço">' + escapeHTML(rec.endereco) + "</td>" +
+        '<td data-label="N°">' + escapeHTML(rec.numero) + "</td>" +
+        '<td data-label="Nome">' + escapeHTML(rec.nome) + "</td>" +
+        '<td data-label="Tipo">' + escapeHTML(rec.tipo) + "</td>" +
+        '<td data-label="Qtd. Residências">' + escapeHTML(rec.qtdResidencias) + "</td>" +
+        '<td class="col-obs" data-label="Observações">' + escapeHTML(rec.observacoes) + "</td>" +
+        '<td data-label="Publicador aprovado"><div class="responsaveis-list">' + tags + "</div></td>" +
+        '<td class="col-mapa" data-label="Mapa">' + mapaCell + "</td>" +
+        "</tr>";
+    }).join("");
+
+    countVisible.textContent = visible.length;
+    countTotal.textContent = allRecords.length;
+    emptyState.style.display = visible.length === 0 ? "block" : "none";
+    document.getElementById("table-wrap").style.display = visible.length === 0 ? "none" : "block";
+
+    if (selectedKey) {
+      var label = selectEl.options[selectEl.selectedIndex].textContent;
+      activeChip.innerHTML = '<span class="chip">Filtrando por: ' + escapeHTML(label) + "</span>";
+    } else {
+      activeChip.innerHTML = "";
+    }
+  }
+
+  function showBanner(message, isError) {
+    statusBanner.style.display = "block";
+    statusBanner.textContent = message;
+    statusBanner.style.background = isError ? "#fff7e6" : "#eaf6ea";
+    statusBanner.style.borderColor = isError ? "#f0c36d" : "#9bd39b";
+    statusBanner.style.color = isError ? "#6b4c00" : "#2c5e2c";
+  }
+
+  function loadFallback() {
+    var raw = document.getElementById("fallback-data").textContent;
+    var data = JSON.parse(raw);
+    allRecords = data.records;
+    nameList = data.names;
+    populateNameSelect(nameList);
+    render();
+    lastSyncEl.textContent = "cópia estática incluída na página (sem acesso ao Sheets em tempo real)";
+    showBanner(
+      "Não foi possível carregar os dados ao vivo da planilha (a planilha precisa estar publicada na web para isso funcionar em um site público). Exibindo a última cópia sincronizada.",
+      true
+    );
+  }
+
+  fetch(CSV_URL, { redirect: "follow" })
+    .then(function (resp) {
+      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      return resp.text();
+    })
+    .then(function (text) {
+      if (text.trim().toLowerCase().indexOf("<!doctype html") === 0 || text.trim().indexOf("<html") === 0) {
+        throw new Error("Planilha não está publicada publicamente (recebeu página de login do Google).");
+      }
+      var parsed = recordsFromCSV(parseCSV(text));
+      if (!parsed.records.length) throw new Error("CSV vazio.");
+      allRecords = parsed.records;
+      nameList = parsed.names;
+      populateNameSelect(nameList);
+      render();
+      lastSyncEl.textContent = "agora mesmo, direto do Google Sheets (" + new Date().toLocaleString("pt-BR") + ")";
+      statusBanner.style.display = "none";
+    })
+    .catch(function (err) {
+      loadFallback();
+    });
+
+  selectEl.addEventListener("change", render);
+  searchEl.addEventListener("input", render);
+  clearBtn.addEventListener("click", function () {
+    selectEl.value = "";
+    searchEl.value = "";
+    render();
+  });
+})();
+</script>
+
+</body>
+</html>
