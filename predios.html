@@ -646,7 +646,7 @@
   // Cole aqui a URL do seu Web App do Google Apps Script (Extensões → Apps Script →
   // Implantar → Nova implantação → Web App) depois de publicá-lo. Enquanto estiver
   // com o valor abaixo, o botão "Salvar" avisa que a gravação ainda não foi configurada.
-  var APPS_SCRIPT_URL = "COLE_AQUI_A_URL_DO_SEU_WEB_APP";
+  var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwoHMwTislCLZCgsWYBnXzJ8P4ad03cdFvDND1GfHY9AgJ7YFNnie1NKdzNXRscmnFn/exec";
 
   // Senha do Admin (só conveniência de UX, não é proteção real — o código-fonte desta
   // página é público). Senha padrão: Territorios#2026
@@ -908,10 +908,15 @@
     }).join("");
   }
 
-  function statusBadgeHTML(rec) {
-    if (rec.dataConclusao) return '<span class="status-badge done">✅ Concluído</span>';
-    if (rec.dataInicio) return '<span class="status-badge progress">🔵 Em andamento</span>';
-    return '<span class="status-badge pending">⚪ Não iniciado</span>';
+  function computeStatus(rec) {
+    if (rec.dataConclusao) return { cls: "done", text: "✅ Concluído" };
+    if (rec.dataInicio) return { cls: "progress", text: "🔵 Em andamento" };
+    return { cls: "pending", text: "⚪ Não iniciado" };
+  }
+
+  function statusBadgeHTML(rec, idx) {
+    var s = computeStatus(rec);
+    return '<span class="status-badge ' + s.cls + '" data-badge-idx="' + idx + '">' + s.text + "</span>";
   }
 
   function datesBlockHTML(rec, idx) {
@@ -964,7 +969,7 @@
         '<td class="col-obs">' + escapeHTML(rec.observacoes) + "</td>" +
         '<td><div class="responsaveis-list">' + tags + "</div></td>" +
         '<td class="col-mapa">' + mapaCell + "</td>" +
-        '<td class="col-dates">' + statusBadgeHTML(rec) + datesBlockHTML(rec, item.idx) + "</td>" +
+        '<td class="col-dates">' + statusBadgeHTML(rec, item.idx) + datesBlockHTML(rec, item.idx) + "</td>" +
         "</tr>";
     }).join("");
 
@@ -996,7 +1001,7 @@
         '<div class="responsaveis-list">' + tags + "</div>" +
         obsLine +
         mapaLine +
-        statusBadgeHTML(rec) +
+        statusBadgeHTML(rec, item.idx) +
         datesBlockHTML(rec, item.idx) +
       "</div>";
     }).join("");
@@ -1052,12 +1057,25 @@
     if (!rec) return;
     var dataInicio = block.querySelector(".date-inicio-input").value;
     var dataConclusao = block.querySelector(".date-conclusao-input").value;
-    saveDates(rec, dataInicio, dataConclusao, btn);
+    saveDates(rec, idx, dataInicio, dataConclusao, btn);
+  }
+
+  // Updates just the status badge(s) for this record (there can be two: one in
+  // the mobile card list, one in the desktop table — both stay in the DOM at
+  // once, CSS just hides whichever isn't the active breakpoint) without
+  // rebuilding the whole list, so a transient button message like "Salvo ✓"
+  // isn't wiped out by a full re-render happening right after it's set.
+  function updateBadgesForIdx(idx, rec) {
+    var s = computeStatus(rec);
+    document.querySelectorAll('.status-badge[data-badge-idx="' + idx + '"]').forEach(function (el) {
+      el.className = "status-badge " + s.cls;
+      el.textContent = s.text;
+    });
   }
   cardsView.addEventListener("click", handleSaveClick);
   tableBody.addEventListener("click", handleSaveClick);
 
-  function saveDates(rec, dataInicio, dataConclusao, btnEl) {
+  function saveDates(rec, idx, dataInicio, dataConclusao, btnEl) {
     if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf("COLE_AQUI") !== -1) {
       alert("A gravação na planilha ainda não foi configurada nesta página (falta publicar o Apps Script e colar a URL). Veja o rodapé da página para instruções.");
       return;
@@ -1084,7 +1102,7 @@
           rec.dataInicio = dataInicio;
           rec.dataConclusao = dataConclusao;
           btnEl.textContent = "Salvo ✓";
-          render();
+          updateBadgesForIdx(idx, rec);
         } else {
           btnEl.textContent = "Erro ao salvar";
           alert("Não consegui salvar: " + (json && json.error ? json.error : "erro desconhecido no Apps Script."));
@@ -1096,7 +1114,7 @@
         rec.dataInicio = dataInicio;
         rec.dataConclusao = dataConclusao;
         btnEl.textContent = "Enviado (sem confirmação)";
-        render();
+        updateBadgesForIdx(idx, rec);
       })
       .then(function () {
         setTimeout(function () {
