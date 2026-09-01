@@ -18,99 +18,119 @@
     --header-bg: #1f2937;
     --header-text: #f5f6f8;
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background: var(--bg);
     color: var(--text);
   }
+
+  /* ---------- Header ---------- */
   header {
     background: var(--header-bg);
     color: var(--header-text);
-    padding: 20px 24px;
+    padding: 14px 16px;
   }
   header h1 {
-    margin: 0 0 4px;
-    font-size: 1.35rem;
+    margin: 0 0 3px;
+    font-size: 1.05rem;
+    line-height: 1.3;
   }
   header p {
     margin: 0;
     color: #c7cdd6;
-    font-size: 0.88rem;
+    font-size: 0.78rem;
+    line-height: 1.4;
   }
-  header a {
-    color: #9fc2ff;
-  }
+  header a { color: #9fc2ff; }
+
   main {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px 16px 60px;
+    padding: 0 0 40px;
   }
+
+  /* ---------- Status banner ---------- */
   #status-banner {
     display: none;
-    border: 1px solid var(--warn-border);
+    border-bottom: 1px solid var(--warn-border);
     background: var(--warn-bg);
     color: #6b4c00;
-    padding: 10px 14px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    margin-bottom: 16px;
+    padding: 8px 16px;
+    font-size: 0.78rem;
     line-height: 1.4;
   }
+
+  /* ---------- Sticky toolbar (filter bar) ---------- */
+  .toolbar-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(245, 246, 248, 0.96);
+    backdrop-filter: saturate(180%) blur(6px);
+    -webkit-backdrop-filter: saturate(180%) blur(6px);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 12px;
+  }
+  .toolbar-sticky.is-stuck { box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+
   .toolbar {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px;
     display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: flex-end;
-    margin-bottom: 16px;
+    flex-direction: column;
+    gap: 8px;
   }
   .field {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    flex: 1 1 220px;
   }
   .field label {
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: 0.68rem;
+    font-weight: 700;
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.03em;
   }
   select, input[type="search"] {
-    padding: 9px 10px;
+    padding: 12px 12px;
     border: 1px solid var(--border);
-    border-radius: 7px;
-    font-size: 0.9rem;
+    border-radius: 9px;
+    font-size: 16px; /* prevents iOS auto-zoom on focus */
     background: #fff;
     color: var(--text);
+    min-height: 46px;
+    width: 100%;
   }
   select:focus, input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .toolbar-row {
+    display: flex;
+    gap: 8px;
+  }
   button#clear-btn {
-    padding: 9px 16px;
-    border-radius: 7px;
+    padding: 10px 14px;
+    border-radius: 9px;
     border: 1px solid var(--border);
     background: #fff;
     color: var(--text);
     cursor: pointer;
     font-size: 0.85rem;
-    height: 38px;
+    font-weight: 600;
+    min-height: 44px;
+    flex-shrink: 0;
   }
-  button#clear-btn:hover { background: #f0f2f5; }
+  button#clear-btn:active { background: #eef1f5; }
+
   #summary {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
-    font-size: 0.85rem;
+    gap: 6px;
+    font-size: 0.78rem;
     color: var(--muted);
     flex-wrap: wrap;
-    gap: 6px;
+    padding-top: 2px;
   }
   #summary strong { color: var(--text); }
   .chip {
@@ -121,9 +141,116 @@
     color: var(--accent);
     padding: 3px 10px;
     border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 700;
+  }
+
+  .content-pad { padding: 12px; }
+
+  /* ---------- Mobile card list (default / primary view) ---------- */
+  #cards-view { display: flex; flex-direction: column; gap: 10px; }
+  .rec-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .rec-card-top {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+  }
+  .rec-territorio {
+    background: var(--header-bg);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .rec-nome {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .rec-endereco {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .rec-meta {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .rec-meta b { color: var(--text); font-weight: 600; }
+  .responsaveis-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 8px;
+  }
+  .resp-tag {
+    background: var(--accent-light);
+    color: var(--accent);
+    padding: 4px 10px;
+    border-radius: 999px;
     font-size: 0.78rem;
     font-weight: 600;
+    white-space: nowrap;
   }
+  .resp-tag.match {
+    background: var(--accent);
+    color: #fff;
+  }
+  .rec-obs {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.45;
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    cursor: default;
+  }
+  .rec-obs-text {
+    display: block;
+  }
+  .rec-obs.truncatable .rec-obs-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .rec-obs.truncatable.expanded .rec-obs-text {
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
+  .rec-obs.truncatable { cursor: pointer; }
+  .rec-obs-toggle {
+    display: none;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.72rem;
+    margin-top: 4px;
+  }
+  .rec-obs.truncatable .rec-obs-toggle { display: block; }
+  .rec-map-link {
+    display: inline-block;
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+  .rec-map-link:active { text-decoration: underline; }
+
+  /* ---------- Desktop table (secondary view, hidden by default) ---------- */
+  #table-view { display: none; }
   table {
     width: 100%;
     border-collapse: collapse;
@@ -151,27 +278,11 @@
   }
   tbody tr:last-child td { border-bottom: none; }
   tbody tr:hover { background: #fafbfc; }
-  .responsaveis-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-  .resp-tag {
-    background: var(--accent-light);
-    color: var(--accent);
-    padding: 2px 8px;
-    border-radius: 999px;
-    font-size: 0.76rem;
-    white-space: nowrap;
-  }
-  .resp-tag.match {
-    background: var(--accent);
-    color: #fff;
-  }
   .col-obs { min-width: 220px; max-width: 320px; color: var(--muted); }
   .col-mapa a { color: var(--accent); text-decoration: none; font-size: 0.82rem; }
   .col-mapa a:hover { text-decoration: underline; }
   #table-wrap { overflow-x: auto; }
+
   #empty-state {
     display: none;
     text-align: center;
@@ -181,49 +292,37 @@
     border: 1px dashed var(--border);
     border-radius: 10px;
   }
+
   footer {
     max-width: 1200px;
-    margin: 24px auto 0;
+    margin: 8px auto 0;
     padding: 0 16px;
     font-size: 0.78rem;
     color: var(--muted);
     line-height: 1.6;
   }
   footer a { color: var(--accent); }
-  details {
-    margin-top: 10px;
-  }
-  details summary {
-    cursor: pointer;
-    font-weight: 600;
-    color: var(--muted);
-  }
-  @media (max-width: 640px) {
-    .toolbar { flex-direction: column; align-items: stretch; }
-    thead { display: none; }
-    table, tbody, tr, td { display: block; width: 100%; }
-    tbody tr {
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      margin-bottom: 10px;
-      padding: 6px 10px;
-    }
-    tbody td {
-      border-bottom: none;
-      padding: 6px 0;
-      display: flex;
-      gap: 6px;
-    }
-    tbody td::before {
-      content: attr(data-label);
-      font-weight: 600;
-      color: var(--muted);
-      min-width: 110px;
-      flex-shrink: 0;
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      padding-top: 2px;
-    }
+  details { margin-top: 10px; }
+  details summary { cursor: pointer; font-weight: 600; color: var(--muted); }
+
+  /* ---------- Desktop / larger screens ---------- */
+  @media (min-width: 900px) {
+    header { padding: 22px 24px; }
+    header h1 { font-size: 1.35rem; }
+    header p { font-size: 0.88rem; }
+
+    .toolbar-sticky { padding: 14px 16px; }
+    .toolbar { flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+    .field { flex: 1 1 220px; }
+    select, input[type="search"] { min-height: 38px; padding: 9px 10px; font-size: 0.9rem; }
+    button#clear-btn { min-height: 38px; }
+    .toolbar-row { flex-shrink: 0; }
+    #summary { font-size: 0.85rem; justify-content: space-between; }
+
+    .content-pad { padding: 20px 16px 0; }
+
+    #cards-view { display: none; }
+    #table-view { display: block; }
   }
 </style>
 </head>
@@ -238,9 +337,9 @@
   </p>
 </header>
 
-<main>
-  <div id="status-banner"></div>
+<div id="status-banner"></div>
 
+<div class="toolbar-sticky" id="toolbar-sticky">
   <div class="toolbar">
     <div class="field">
       <label for="responsavel-select">Responsável (Coluna H)</label>
@@ -249,55 +348,64 @@
       </select>
     </div>
     <div class="field">
-      <label for="search-input">Buscar (território, endereço, nome, tipo, observações...)</label>
+      <label for="search-input">Buscar (território, endereço, nome, tipo...)</label>
       <input type="search" id="search-input" placeholder="Ex: São Cristóvão, Kitnet, N22...">
     </div>
-    <button id="clear-btn" type="button">Limpar filtros</button>
+    <div class="toolbar-row">
+      <button id="clear-btn" type="button">Limpar filtros</button>
+    </div>
   </div>
-
   <div id="summary">
     <span>Exibindo <strong id="count-visible">0</strong> de <strong id="count-total">0</strong> registros</span>
     <span id="active-filter-chip"></span>
   </div>
+</div>
 
-  <div id="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Território</th>
-          <th>Endereço</th>
-          <th>N°</th>
-          <th>Nome</th>
-          <th>Tipo</th>
-          <th>Qtd. Residências</th>
-          <th>Observações</th>
-          <th>Publicador aprovado</th>
-          <th>Mapa</th>
-        </tr>
-      </thead>
-      <tbody id="table-body"></tbody>
-    </table>
+<main>
+  <div class="content-pad">
+    <div id="empty-state">Nenhum registro encontrado para esse filtro.</div>
+
+    <!-- Mobile: card list (primary view) -->
+    <div id="cards-view"></div>
+
+    <!-- Desktop: full table -->
+    <div id="table-view">
+      <div id="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Território</th>
+              <th>Endereço</th>
+              <th>N°</th>
+              <th>Nome</th>
+              <th>Tipo</th>
+              <th>Qtd. Residências</th>
+              <th>Observações</th>
+              <th>Publicador aprovado</th>
+              <th>Mapa</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
-
-  <div id="empty-state">Nenhum registro encontrado para esse filtro.</div>
-
 </main>
 
 <footer>
   <p>
-    <strong>Sobre a sincronização:</strong> esta página tenta buscar os dados diretamente da planilha do Google Sheets em tempo real
-    (via exportação CSV pública). Se a planilha não estiver publicada como "qualquer pessoa com o link pode visualizar",
-    o navegador do visitante não consegue baixá-la (o Google bloqueia/exige login), e a página exibe automaticamente a
-    <strong>última cópia sincronizada</strong> incluída neste arquivo.
+    <strong>Sobre a sincronização:</strong> esta página busca os dados diretamente da planilha do Google Sheets em tempo real
+    (via exportação CSV pública). Se por algum motivo a busca falhar (planilha despublicada, sem internet etc.),
+    a página exibe automaticamente a <strong>última cópia sincronizada</strong> incluída neste arquivo.
   </p>
   <details>
     <summary>Observações da verificação dos dados (clique para ver)</summary>
     <ul>
       <li>A planilha tem 1 aba ("Página1"), 9 colunas (A–I) e 87 linhas de dados na data da verificação.</li>
-      <li>A Coluna H ("Publicador aprovado") normalmente contém vários nomes juntos na mesma célula (ex: "Luciana, Stefany, Rosa e Leda"). O filtro abaixo separa esses nomes individualmente para permitir a busca por pessoa.</li>
-      <li>Há inconsistência de maiúsculas/minúsculas na planilha original (ex.: "Cristiane Kraus" em algumas linhas e "CRistiane Kraus" / "marlene Santos" em outras). O filtro trata isso como a mesma pessoa, mas o texto exibido na tabela mantém a grafia original de cada linha.</li>
+      <li>A Coluna H ("Publicador aprovado") normalmente contém vários nomes juntos na mesma célula (ex: "Luciana, Stefany, Rosa e Leda"). O filtro separa esses nomes individualmente para permitir a busca por pessoa.</li>
+      <li>Há inconsistência de maiúsculas/minúsculas na planilha original (ex.: "Cristiane Kraus" em algumas linhas e "CRistiane Kraus" / "marlene Santos" em outras). O filtro trata isso como a mesma pessoa, mas o texto exibido mantém a grafia original de cada linha.</li>
       <li><strong>Possível erro de digitação encontrado:</strong> 4 linhas têm o Território começando com "M" (M46, M46, M46, M49) em vez de "N" — muito provavelmente um erro de digitação, já que "M" e "N" são teclas vizinhas e essas linhas estão intercaladas entre territórios N45–N49. Não corrigi automaticamente; os valores originais da planilha foram mantidos.</li>
-      <li>A linha do Território N3 tem "Rosa spliter" em vez de "Rosa" (erro de digitação confirmado) — o filtro trata as duas grafias como a mesma pessoa. O texto exibido na tabela mantém a grafia original de cada linha.</li>
+      <li>A linha do Território N3 tem "Rosa spliter" em vez de "Rosa" (erro de digitação confirmado) — o filtro trata as duas grafias como a mesma pessoa. O texto exibido mantém a grafia original de cada linha.</li>
       <li>Alguns campos estão vazios na planilha original (ex.: Tipo/Qtd. Residências/Observações em algumas linhas de N26, N38, N48), o que é esperado — não preenchi nada.</li>
     </ul>
   </details>
@@ -314,6 +422,7 @@
   var CSV_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/export?format=csv&gid=0";
 
   var tableBody = document.getElementById("table-body");
+  var cardsView = document.getElementById("cards-view");
   var selectEl = document.getElementById("responsavel-select");
   var searchEl = document.getElementById("search-input");
   var clearBtn = document.getElementById("clear-btn");
@@ -323,6 +432,7 @@
   var statusBanner = document.getElementById("status-banner");
   var lastSyncEl = document.getElementById("last-sync");
   var activeChip = document.getElementById("active-filter-chip");
+  var toolbarSticky = document.getElementById("toolbar-sticky");
 
   var allRecords = [];
   var nameList = [];
@@ -430,6 +540,15 @@
     return div.innerHTML;
   }
 
+  function buildTagsHTML(rec, selectedKey) {
+    var displayNames = splitResponsaveis(rec.publicadorAprovado);
+    return displayNames.map(function (label) {
+      var key = normalize(label);
+      var cls = key === selectedKey ? "resp-tag match" : "resp-tag";
+      return '<span class="' + cls + '">' + escapeHTML(label) + "</span>";
+    }).join("");
+  }
+
   function render() {
     var selectedKey = selectEl.value;
     var query = normalize(searchEl.value);
@@ -445,48 +564,99 @@
       return haystack.indexOf(query) !== -1;
     });
 
+    // ---- Desktop table rows ----
     tableBody.innerHTML = visible.map(function (rec) {
-      var tagsHtml = rec.responsaveis.map(function (key, i) {
-        var label = (rec.publicadorAprovado ? null : null);
-        return key;
-      });
-      // Build display tags using original casing split from publicadorAprovado
-      var displayNames = splitResponsaveis(rec.publicadorAprovado);
-      var tags = displayNames.map(function (label) {
-        var key = normalize(label);
-        var cls = key === selectedKey ? "resp-tag match" : "resp-tag";
-        return '<span class="' + cls + '">' + escapeHTML(label) + '</span>';
-      }).join("");
-
+      var tags = buildTagsHTML(rec, selectedKey);
       var mapaCell = rec.mapa
         ? '<a href="' + escapeHTML(rec.mapa) + '" target="_blank" rel="noopener">Abrir mapa ↗</a>'
         : '<span style="color:#aaa">—</span>';
-
       return "<tr>" +
-        '<td data-label="Território">' + escapeHTML(rec.territorio) + "</td>" +
-        '<td data-label="Endereço">' + escapeHTML(rec.endereco) + "</td>" +
-        '<td data-label="N°">' + escapeHTML(rec.numero) + "</td>" +
-        '<td data-label="Nome">' + escapeHTML(rec.nome) + "</td>" +
-        '<td data-label="Tipo">' + escapeHTML(rec.tipo) + "</td>" +
-        '<td data-label="Qtd. Residências">' + escapeHTML(rec.qtdResidencias) + "</td>" +
-        '<td class="col-obs" data-label="Observações">' + escapeHTML(rec.observacoes) + "</td>" +
-        '<td data-label="Publicador aprovado"><div class="responsaveis-list">' + tags + "</div></td>" +
-        '<td class="col-mapa" data-label="Mapa">' + mapaCell + "</td>" +
+        "<td>" + escapeHTML(rec.territorio) + "</td>" +
+        "<td>" + escapeHTML(rec.endereco) + "</td>" +
+        "<td>" + escapeHTML(rec.numero) + "</td>" +
+        "<td>" + escapeHTML(rec.nome) + "</td>" +
+        "<td>" + escapeHTML(rec.tipo) + "</td>" +
+        "<td>" + escapeHTML(rec.qtdResidencias) + "</td>" +
+        '<td class="col-obs">' + escapeHTML(rec.observacoes) + "</td>" +
+        '<td><div class="responsaveis-list">' + tags + "</div></td>" +
+        '<td class="col-mapa">' + mapaCell + "</td>" +
         "</tr>";
+    }).join("");
+
+    // ---- Mobile card list ----
+    cardsView.innerHTML = visible.map(function (rec) {
+      var tags = buildTagsHTML(rec, selectedKey);
+      var enderecoLine = [rec.endereco, rec.numero].filter(Boolean).join(", ");
+      var metaParts = [];
+      if (rec.tipo) metaParts.push(escapeHTML(rec.tipo));
+      if (rec.qtdResidencias) metaParts.push("<b>" + escapeHTML(rec.qtdResidencias) + "</b>");
+      var metaLine = metaParts.length ? '<div class="rec-meta">' + metaParts.join(" · ") + "</div>" : "";
+      var obsLine = rec.observacoes
+        ? '<div class="rec-obs">' +
+            '<span class="rec-obs-text">' + escapeHTML(rec.observacoes) + "</span>" +
+            '<span class="rec-obs-toggle">ver mais ▾</span>' +
+          "</div>"
+        : "";
+      var mapaLine = rec.mapa
+        ? '<a class="rec-map-link" href="' + escapeHTML(rec.mapa) + '" target="_blank" rel="noopener">📍 Abrir no mapa ↗</a>'
+        : "";
+      return '<div class="rec-card">' +
+        '<div class="rec-card-top">' +
+          '<span class="rec-territorio">' + escapeHTML(rec.territorio) + "</span>" +
+          '<span class="rec-nome">' + escapeHTML(rec.nome || "Sem nome") + "</span>" +
+        "</div>" +
+        '<div class="rec-endereco">' + escapeHTML(enderecoLine) + "</div>" +
+        metaLine +
+        '<div class="responsaveis-list">' + tags + "</div>" +
+        obsLine +
+        mapaLine +
+      "</div>";
     }).join("");
 
     countVisible.textContent = visible.length;
     countTotal.textContent = allRecords.length;
     emptyState.style.display = visible.length === 0 ? "block" : "none";
-    document.getElementById("table-wrap").style.display = visible.length === 0 ? "none" : "block";
+    document.getElementById("table-view").style.display = visible.length === 0 ? "none" : "";
+    cardsView.style.display = visible.length === 0 ? "none" : "";
 
     if (selectedKey) {
       var label = selectEl.options[selectEl.selectedIndex].textContent;
-      activeChip.innerHTML = '<span class="chip">Filtrando por: ' + escapeHTML(label) + "</span>";
+      activeChip.innerHTML = '<span class="chip">Filtrando: ' + escapeHTML(label) + "</span>";
     } else {
       activeChip.innerHTML = "";
     }
+
+    markTruncatedObs();
   }
+
+  // After rendering, check which "Observações" boxes actually overflow 2 lines
+  // and only then mark them as expandable (avoids showing a useless toggle on
+  // short text that already fits).
+  function markTruncatedObs() {
+    var boxes = cardsView.querySelectorAll(".rec-obs");
+    boxes.forEach(function (box) {
+      box.classList.remove("truncatable", "expanded");
+      var textEl = box.querySelector(".rec-obs-text");
+      if (!textEl) return;
+      box.classList.add("truncatable");
+      var overflowing = textEl.scrollHeight > textEl.clientHeight + 2;
+      if (!overflowing) box.classList.remove("truncatable");
+    });
+  }
+
+  // Expand/collapse truncated "Observações" text on tap (mobile cards).
+  cardsView.addEventListener("click", function (ev) {
+    var box = ev.target.closest(".rec-obs.truncatable");
+    if (!box) return;
+    var expanded = box.classList.toggle("expanded");
+    var toggle = box.querySelector(".rec-obs-toggle");
+    if (toggle) toggle.textContent = expanded ? "ver menos ▴" : "ver mais ▾";
+  });
+
+  // Visual shadow on the sticky toolbar once the page has scrolled under it.
+  window.addEventListener("scroll", function () {
+    toolbarSticky.classList.toggle("is-stuck", window.scrollY > 4);
+  }, { passive: true });
 
   function showBanner(message, isError) {
     statusBanner.style.display = "block";
@@ -505,7 +675,7 @@
     render();
     lastSyncEl.textContent = "cópia estática incluída na página (sem acesso ao Sheets em tempo real)";
     showBanner(
-      "Não foi possível carregar os dados ao vivo da planilha (a planilha precisa estar publicada na web para isso funcionar em um site público). Exibindo a última cópia sincronizada.",
+      "Não foi possível carregar os dados ao vivo da planilha agora. Exibindo a última cópia sincronizada.",
       true
     );
   }
